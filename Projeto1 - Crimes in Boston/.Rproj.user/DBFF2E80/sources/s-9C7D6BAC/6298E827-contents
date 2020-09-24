@@ -1,0 +1,13 @@
+library(dplyr)
+library(ggplot2)
+library(dslabs)
+
+
+data(murders)
+head(murders)
+
+p <- gplot(data = murders)
+class(p)
+
+ggplot(data = murders) +
+  geom_point(aes(population/10^6, total))

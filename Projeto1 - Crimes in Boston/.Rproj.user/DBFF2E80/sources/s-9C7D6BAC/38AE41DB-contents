@@ -1,0 +1,23 @@
+install.packages("plot3D")
+library("plot3D")
+
+wines  <- read.csv("wine.csv", header = FALSE, sep = ",")
+
+#Escolhendo coordenadas X, Y, Z
+alcohol <- wines$V2
+colorIntensity <- wines$V11
+magnesium <- wines$V7
+
+
+#Plotagem incial
+scatter3D(alcohol, colorIntensity, magnesium, phi = 0, bty = "g",
+          pch = 20, cex = 2, ticktype = "detailed", xlab="Alcool", ylab = "Intensidade de cor", 
+          zlab = "magnesium")
+
+#Mudando angulo da visão 
+scatter3D(alcohol, colorIntensity, magnesium, bty = "g",
+          pch =20, cex = 2, ticktype = "detailed", xlab="Alcool", ylab = "Intensidade de cor", 
+          zlab = "magnesium", theta = 15, phi = 8, d = 2)
+
+#
+
