@@ -81,10 +81,6 @@ convertedDistrict
 ggplot(convertedDistrict ,aes(x = distritos, y = Freq)) +
   geom_point()
 
-#  geom_bar()
-ggplot(data.frame(crimes$OFFENSE_CODE), aes(x=Tes)) +
-  geom_bar()
-
 barplot(convertedDistrict$Freq, names.arg = convertedDistrict$distritos)
 
 ggplot(convertedDistrict, aes(x = distritos, y = Freq)) +
@@ -128,3 +124,5 @@ ggplot(df_hour, aes(x=Hour, y=value, fill=variable)) +
 
 ggplot(df_day_of_week, aes(x=Hour, y=value, fill=variable)) + 
   geom_bar(stat='identity', position='dodge')
+
+
