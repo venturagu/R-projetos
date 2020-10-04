@@ -118,6 +118,8 @@ View(df_crimes_hour)
 df_hour <- melt(df_crimes_hour, id.vars='Hour')
 df_day_of_week <- melt(df_crimes_day_of_week, id.vars='Hour')
 
+View(df_hour)
+
 # Grafico de barras crimes filtrados por hora e por dia da semana
 ggplot(df_hour, aes(x=Hour, y=value, fill=variable)) + 
   geom_bar(stat='identity', position='dodge')
@@ -161,3 +163,38 @@ ggplot(geralFilter, aes(x = Long, y = Lat, group=DISTRICT, colour = DISTRICT))+
   ylim(42.2,42.4) +
   facet_grid(.~OFFENSE_CODE_GROUP)
   
+# ------------------------------------------------------------------------------
+# Explorando os dados temporais
+
+#Para os crimes tratados anteriormente, plote séries temporais que
+#apresentem como estes crimes tem evoluído ao longo dos anos, no geral.
+
+homicide_year<-as.data.frame(table(unlist(homicideFilter$YEAR)))
+drug_year<-as.data.frame(table(unlist(drugFilter$YEAR)))
+larceny_year<-as.data.frame(table(unlist(larcenyFilter$YEAR)))
+
+crimesYears <- data.frame(Year = homicide_year$Var1, Homocide = homicide_year$Freq, Drug_Violation = drug_year$Freq, Larceny = larceny_year$Freq )
+df_years <- melt(crimesYears, id.vars='Year')
+View(larceny_year)
+
+ggplot(df_years, aes(x=Year, y=value, fill=variable)) + 
+  geom_bar(stat='identity', position='dodge')
+
+
+ggplot(data=df_years, aes(x=Year, y=value, group=variable, color=variable)) +
+  geom_line()+
+  geom_point()
+
+#Para os crimes tratados anteriormente, plote séries temporais, considerando
+#apenas as 3 regiões mais violentas.
+
+# Duvida: Os 3 distritos mais violentos para cada crime? ou ao total dos 3 crimes?
+
+#Preparação dos dados para cada crime
+homicide_district<-as.data.frame(table(unlist(homicideFilter$DISTRICT)))
+lacerny_district<-as.data.frame(table(unlist(larcenyFilter$DISTRICT)))
+drug_district<-as.data.frame(table(unlist(drugFilter$DISTRICT)))
+
+#Preparação dos dados para todos os crimes
+drug_distric<-as.data.frame(table(unlist(drugFilter$YEAR)))
+
