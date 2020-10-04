@@ -4,7 +4,7 @@ library(ggplot2)
 library(dslabs)
 library(reshape2) # melt a data.frame
 
-# setwd("~/Documents/R aulas/projeto1")
+# setwd("~/Documents/topicos_BD/Projeto1 - Crimes in Boston")
 
 # ------------------------------------ Leitura do CSV --------------------------
 crimes <- read.csv("crime.csv", sep=",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'))
@@ -43,15 +43,15 @@ menor_long = min(crimes$Long, na.rm=T)
 # Mapa dos crimes agrupado por distrito de Boston
 ggplot(crimes, aes(x = Long, y = Lat, group=DISTRICT, colour = DISTRICT))+
   geom_point(size = 1, alpha = 1) + 
-  xlim(-71.15,-70.90) +
+  xlim(-71.15, -70.90) +
   ylim(42.2,42.4) +
   ggtitle("Crimes ocorridos na região de Boston separado por distritos")
 
 # Mapa dos crimes agrupados por tipo de ofensa
 ggplot(crimes, aes(x = Long, y = Lat, group=OFFENSE_CODE, colour = OFFENSE_CODE))+
   geom_point(size = 1, alpha = 1) + 
-  xlim(-71.15,-70.90) +
-  ylim(42.2,42.4) +
+  xlim(-71.15, -70.90) +
+  ylim(42.2, 42.4) +
   ggtitle("Crimes ocorridos na região de Boston separado por tipos ofensa de crimes")
 
 #Nesse decidimos aplicar algo para calcular frequencia de dados nominais/ordinais
@@ -111,7 +111,7 @@ larceny_day_of_week<-as.data.frame(table(unlist(larcenyFilter$DAY_OF_WEEK)))
 df_crimes_hour <- data.frame(Hour = homicide_hour$Var1, Homocide = homicide_hour$Freq, Drug_Violation = drug_hour$Freq, Larceny = larceny_hour$Freq )
 df_crimes_day_of_week <- data.frame(Hour = homicide_day_of_week$Var1, Homocide = homicide_day_of_week$Freq, Drug_Violation = drug_day_of_week$Freq, Larceny = larceny_day_of_week$Freq )
 
-View(df_crimes)
+View(df_crimes_hour)
 
 #when you melt essentially you create only one column with the value
 #and one column with the variable i.e. your others columns
@@ -126,3 +126,38 @@ ggplot(df_day_of_week, aes(x=Hour, y=value, fill=variable)) +
   geom_bar(stat='identity', position='dodge')
 
 
+# ------------------------------------------------------------------------------
+# Insight procurado -> Onde os crimes ocorrem?
+
+# Filtro de todos os crimes relacionado a homicidio, drogas e roubo
+homicideFilter <- filter(crimes, OFFENSE_CODE_GROUP == "Homicide")
+drugFilter <- filter(crimes, OFFENSE_CODE_GROUP == "Drug Violation")
+larcenyFilter <- filter(crimes, OFFENSE_CODE_GROUP == "Larceny")
+geralFilter <- filter(crimes, OFFENSE_CODE_GROUP == "Homicide" | OFFENSE_CODE_GROUP == "Drug Violation" | OFFENSE_CODE_GROUP == "Larceny")
+
+# Mapa dos crimes agrupados por crimes de roubo, assasinato e drogas
+# apresentação de forma unida no mesmo ambiente 
+grafico <- ggplot(geralFilter, aes(x = Long, y = Lat, group=OFFENSE_CODE_GROUP, color = OFFENSE_CODE_GROUP))+
+  geom_point(size = 1.2, alpha = 0.9) + 
+  xlim(-71.15, -70.90) +
+  ylim(42.2, 42.4)
+
+grafico + scale_color_manual(values=c("#E69F00", "red", "#56B4E9"))
+
+
+# Mapa de crimes de roubo, assasinato e drogas plotadas de forma separada
+grafico <- ggplot(geralFilter, aes(x = Long, y = Lat, group=OFFENSE_CODE_GROUP, color = OFFENSE_CODE_GROUP))+
+  geom_point(size = 1.2, alpha = 0.9) + 
+  xlim(-71.15, -70.90) +
+  ylim(42.2, 42.4) +
+  facet_grid(.~OFFENSE_CODE_GROUP)
+
+grafico + scale_color_manual(values=c("#E69F00", "red", "#56B4E9"))
+
+#Apresente este mesmo gráfico com os pontos coloridos pela região.
+ggplot(geralFilter, aes(x = Long, y = Lat, group=DISTRICT, colour = DISTRICT))+
+  geom_point(size = 1, alpha = 1) + 
+  xlim(-71.15, -70.90) +
+  ylim(42.2,42.4) +
+  facet_grid(.~OFFENSE_CODE_GROUP)
+  
