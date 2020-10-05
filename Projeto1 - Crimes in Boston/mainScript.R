@@ -188,13 +188,8 @@ ggplot(data=df_years, aes(x=Year, y=value, group=variable, color=variable)) +
 #Para os crimes tratados anteriormente, plote séries temporais, considerando
 #apenas as 3 regiões mais violentas.
 
-# Duvida: Os 3 distritos mais violentos para cada crime? ou ao total dos 3 crimes?
-
-#Preparação dos dados para cada crime
-homicide_district<-as.data.frame(table(unlist(homicideFilter$DISTRICT)))
-lacerny_district<-as.data.frame(table(unlist(larcenyFilter$DISTRICT)))
-drug_district<-as.data.frame(table(unlist(drugFilter$DISTRICT)))
-
 #Preparação dos dados para todos os crimes
-drug_distric<-as.data.frame(table(unlist(drugFilter$YEAR)))
+geral_distric<-as.data.frame(table(unlist(geralFilter$DISTRICT)))
 
+#D4, A1 e B2 são os distritos com mais ocorrencias
+more_dist <- filter(geralFilter, DISTRICT == "D4" | DISTRICT == "A1"| DISTRICT == "B2")
