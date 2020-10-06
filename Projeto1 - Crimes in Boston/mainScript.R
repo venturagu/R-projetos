@@ -174,8 +174,9 @@ drug_year<-as.data.frame(table(unlist(drugFilter$YEAR)))
 larceny_year<-as.data.frame(table(unlist(larcenyFilter$YEAR)))
 
 crimesYears <- data.frame(Year = homicide_year$Var1, Homocide = homicide_year$Freq, Drug_Violation = drug_year$Freq, Larceny = larceny_year$Freq )
+View(crimesYears)
 df_years <- melt(crimesYears, id.vars='Year')
-View(larceny_year)
+View(df_years)
 
 ggplot(df_years, aes(x=Year, y=value, fill=variable)) + 
   geom_bar(stat='identity', position='dodge')
@@ -190,6 +191,43 @@ ggplot(data=df_years, aes(x=Year, y=value, group=variable, color=variable)) +
 
 #Preparação dos dados para todos os crimes
 geral_distric<-as.data.frame(table(unlist(geralFilter$DISTRICT)))
+distOrder <- geral_distric[order(- geral_distric$Freq), ]
 
-#D4, A1 e B2 são os distritos com mais ocorrencias
-more_dist <- filter(geralFilter, DISTRICT == "D4" | DISTRICT == "A1"| DISTRICT == "B2")
+#3 Distritos mais violentos
+firstViolent <- distOrder$Var1[1]
+secondViolent <- distOrder[2,1]
+thirdViolent <- distOrder[3,1]
+print(thirdViolent)
+
+#Função que gera o grafico temporal dado um distrito
+plot_temporal_grap <- function(dist, geralFilter) {
+
+  #Gerando os filtros especificos
+  lacerny_filter <- filter(geralFilter, DISTRICT == dist & OFFENSE_CODE_GROUP == "Larceny")
+  drug_filter <- filter(geralFilter, DISTRICT == dist & OFFENSE_CODE_GROUP == "Drug Violation")
+  homicide_filter <- filter(geralFilter, DISTRICT == dist & OFFENSE_CODE_GROUP == "Homicide")
+  
+  #Gerando tabelas
+  lacerny_year <- as.data.frame(table(unlist(lacerny_filter$YEAR)))
+  drug_year <- as.data.frame(table(unlist(drug_filter$YEAR)))
+  homicide_year <- as.data.frame(table(unlist(homicide_filter$YEAR)))
+  
+  #Gerando a tabela principal que sera usada para gerar os graficos
+  main_table <- data.frame(YEAR = lacerny_year$Var1, LACERNY = lacerny_year$Freq, DRUG = drug_year$Freq, 
+                              HOMICIDE = homicide_year$Freq)
+  
+  #Gerando o grafico temporal que sera retornado
+  df_main <- melt(main_table, id.vars='YEAR')
+  
+  result <- ggplot(df_main, aes(x=YEAR, y=value, fill=variable)) + 
+    geom_bar(stat='identity', position='dodge') + 
+    labs(subtitle = "Ocorrencias ao longos do anos na regiao", title = dist) +
+    xlab("Anos") +
+    ylab("Ocorrências")
+  
+  return(result)
+}
+
+firstViolent_graph <- plot_temporal_grap(firstViolent, geralFilter)
+secondViolent_graph <- plot_temporal_grap(secondViolent, geralFilter)
+thirdViolent_graph <- plot_temporal_grap(thirdViolent, geralFilter)
