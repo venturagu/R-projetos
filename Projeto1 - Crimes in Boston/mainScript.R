@@ -230,4 +230,5 @@ plot_temporal_grap <- function(dist, geralFilter) {
 
 firstViolent_graph <- plot_temporal_grap(firstViolent, geralFilter)
 secondViolent_graph <- plot_temporal_grap(secondViolent, geralFilter)
+secondViolent_graph
 thirdViolent_graph <- plot_temporal_grap(thirdViolent, geralFilter)
