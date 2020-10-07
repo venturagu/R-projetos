@@ -71,12 +71,17 @@ ggplot(crimes_mais_cometidos ,aes(x = categorias_de_crimes, y = Freq)) +
 #Histogramas de tipos de ocorrencia
 barplot(crimes_mais_cometidos$Freq, names.arg = crimes_mais_cometidos$categorias_de_crimes)
 
+# Histograma de tipos de ocorrencia com rotação na label x para melhor visualização
+ggplot(crimes_mais_cometidos,aes(x = categorias_de_crimes, y = Freq)) +
+  geom_bar(stat='identity') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title="Crimes com mais ocorrencias", x="Categoria de crimes", y="Nº de ocorrencias")
+
 #Distritos com mais ocorrencias 
 distritos <- factor(crimes$DISTRICT)
 distritosTable <- table(distritos)
 convertedDistrict <- as.data.frame(distritosTable)
 convertedDistrict
-
 
 ggplot(convertedDistrict ,aes(x = distritos, y = Freq)) +
   geom_point()
@@ -232,3 +237,70 @@ firstViolent_graph <- plot_temporal_grap(firstViolent, geralFilter)
 secondViolent_graph <- plot_temporal_grap(secondViolent, geralFilter)
 secondViolent_graph
 thirdViolent_graph <- plot_temporal_grap(thirdViolent, geralFilter)
+
+firstViolent_graph
+secondViolent_graph
+thirdViolent_graph
+
+# Implementação adicional onde é criado um data frame onde relaciona crimes tratados anteriormente,
+# para plote de séries temporais com gráfico de linha, seprando por grupos das 3 regiões mais violentas
+
+# Preparação dos dados para todos os crimes
+geral_distric <- as.data.frame(table(unlist(geralFilter$DISTRICT)))
+View(geral_distric)
+
+# D4, C11 e B2 são os 3 distritos com mais ocorrencias
+more_dist <- filter(geralFilter, DISTRICT == "D4" | DISTRICT == "A1"| DISTRICT == "B2")
+
+distric_D4_homicide <- filter(homicideFilter, DISTRICT == "D4")
+distric_D4_drug <- filter(drugFilter, DISTRICT == "D4")
+distric_D4_larceny <- filter(larcenyFilter, DISTRICT == "D4")
+
+distric_C11_homicide <- filter(homicideFilter, DISTRICT == "C11")
+distric_C11_drug <- filter(drugFilter, DISTRICT == "C11")
+distric_C11_larceny <- filter(larcenyFilter, DISTRICT == "C11")
+
+distric_B2_homicide <- filter(homicideFilter, DISTRICT == "B2")
+distric_B2_drug <- filter(drugFilter, DISTRICT == "B2")
+distric_B2_larceny <- filter(larcenyFilter, DISTRICT == "B2")
+
+# Tabela de quantidade de crimes de homicidio, drogas e roubo por ano
+more_distric <- as.data.frame(table(unlist(more_dist$YEAR)))
+View(more_distric)
+
+# Tabela de quantidade de crimes de homicidio, drogas e roubo por ano separado nos 3 distritos mais violentos
+dist_D4_homicide_year <- as.data.frame(table(unlist(distric_D4_homicide$YEAR)))
+dist_D4_drug_year <- as.data.frame(table(unlist(distric_D4_drug$YEAR)))
+dist_D4_larceny_year <- as.data.frame(table(unlist(distric_D4_larceny$YEAR)))
+
+dist_C11_homicide_year <- as.data.frame(table(unlist(distric_C11_homicide$YEAR)))
+dist_C11_drug_year <- as.data.frame(table(unlist(distric_C11_drug$YEAR)))
+dist_C11_larceny_year <- as.data.frame(table(unlist(distric_C11_larceny$YEAR)))
+
+dist_B2_homicide_year <- as.data.frame(table(unlist(distric_B2_homicide$YEAR)))
+dist_B2_drug_year <- as.data.frame(table(unlist(distric_B2_drug$YEAR)))
+dist_B2_larceny_year <- as.data.frame(table(unlist(distric_B2_larceny$YEAR)))
+
+# Criando dataframes estruturado por ano para os crimes filtrados de acordo com o distrito especificado
+df_crimes_D4 <- data.frame(Year = dist_D4_homicide_year$Var1, Homocide = dist_D4_homicide_year$Freq, Drug_Violation = dist_D4_drug_year$Freq, Larceny = dist_D4_larceny_year$Freq )
+df_crimes_C11 <- data.frame(Year = dist_A1_homicide_year$Var1, Homocide = dist_C11_homicide_year$Freq, Drug_Violation = dist_A1_drug_year$Freq, Larceny = dist_A1_larceny_year$Freq )
+df_crimes_B2 <- data.frame(Year = dist_B2_homicide_year$Var1, Homocide = dist_B2_homicide_year$Freq, Drug_Violation = dist_B2_drug_year$Freq, Larceny = dist_B2_larceny_year$Freq )
+
+# Adicionando clouna referente ao distritos aos data frames
+nrow(df_crimes_D4)
+
+total <- rbind(df_crimes_D4, df_crimes_C11)
+total <- rbind(total, df_crimes_B2)
+
+new_df <- melt(total, id.vars='Year')
+
+new_df$District <- c('D4','D4','D4','D4','C11','C11','C11','C11','B2','B2','B2','B2',
+                     'D4','D4','D4','D4','C11','C11','C11','C11','B2','B2','B2','B2',
+                     'D4','D4','D4','D4','C11','C11','C11','C11','B2','B2','B2','B2')
+View(new_df)
+
+# Gráfico de série temporal do tipo linha seprado em grid dos 3 distritos mais violentos
+ggplot(data=new_df, aes(x=Year, y=value, group=variable, color=variable)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(.~District)
