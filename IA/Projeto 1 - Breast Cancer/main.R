@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(dslabs)
 library(reshape2)
+library(stringr)
 
 data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE)
 
@@ -43,6 +44,16 @@ cancers <- data %>%
     fractal_dimension_worst = V32
   )
 
+# Verificar se existem dados vazios
+sum(is.na(cancers)) # Nenhum valor de atributo ausente
+
+# Entendimento previo do dataset
+dim(cancers)
+dim(train)
+dim(test)
+str(train)
+sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
+sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
 
 # Dataset de treino 75%  da base original e teste 25% base original.
 set.seed(123)
@@ -51,3 +62,19 @@ train_ind <- sample(seq_len(nrow(cancers)), size = smp_size)
 
 train <- cancers[train_ind, ]
 test <- cancers[-train_ind, ]
+
+# ---------- Gráficos para verificar se visualmente os dados são classificaveis---------------------------------------------
+
+# Gráfico de pizza - quantidade de cancer diagnosticado como maligno ou benigno
+diagnostico_frequencia <-table(train$diagnosis)
+diagnosis_porcentagem <- prop.table(diagnostico_frequencia)*100 # "% of total sum of row of column"
+diagnostico_tabela <-as.data.frame(diagnosis_porcentagem)
+colnames(diagnostico_tabela)[1] <- "Diagnostico"
+
+bp<- ggplot(diagnostico_tabela, aes(x="", y= Freq, fill=Diagnostico))+
+  geom_bar(width = 1, stat = "identity")
+
+pie <- bp + coord_polar("y", start=0) +
+  labs(x=NULL,y=NULL,title="Diagnostico B- Benigno / M- Maligno") 
+pie
+
