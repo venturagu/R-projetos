@@ -5,7 +5,7 @@ library(dslabs)
 library(reshape2)
 library(stringr)
 
-data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE)
+data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE,  dec=".", stringsAsFactors=FALSE)
 
 # Renomeando as colunas com base no indicado no link do dataset https://www.kaggle.com/uciml/breast-cancer-wisconsin-data
 cancers <- data %>%
@@ -49,8 +49,6 @@ sum(is.na(cancers)) # Nenhum valor de atributo ausente
 
 # Entendimento previo do dataset
 dim(cancers)
-dim(train)
-dim(test)
 str(train)
 sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
 sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
@@ -67,8 +65,9 @@ test <- cancers[-train_ind, ]
 
 # Gráfico de pizza - quantidade de cancer diagnosticado como maligno ou benigno
 diagnostico_frequencia <-table(train$diagnosis)
-diagnosis_porcentagem <- prop.table(diagnostico_frequencia)*100 # "% of total sum of row of column"
-diagnostico_tabela <-as.data.frame(diagnosis_porcentagem)
+diagnostico_porcentagem <- round(prop.table(diagnostico_frequencia)*100) # "% of total sum of row of column"
+diagnostico_porcentagem # B -> 65% e M -> 35%
+diagnostico_tabela <-as.data.frame(diagnostico_porcentagem)
 colnames(diagnostico_tabela)[1] <- "Diagnostico"
 
 bp<- ggplot(diagnostico_tabela, aes(x="", y= Freq, fill=Diagnostico))+
@@ -78,3 +77,8 @@ pie <- bp + coord_polar("y", start=0) +
   labs(x=NULL,y=NULL,title="Diagnostico B- Benigno / M- Maligno") 
 pie
 
+# plots de teste:
+hist(train$radius_mean)
+
+ggplot(data=train, aes(x=radius_mean, y=texture_mean, group=diagnosis, color=diagnosis)) +
+  geom_bar(stat='identity')
