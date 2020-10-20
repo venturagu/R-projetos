@@ -82,3 +82,31 @@ hist(train$radius_mean)
 
 ggplot(data=train, aes(x=radius_mean, y=texture_mean, group=diagnosis, color=diagnosis)) +
   geom_bar(stat='identity')
+
+ggplot(train, aes(x=texture_mean, y=area_mean)) + geom_point()
+
+# Remoção da feature id para não ser plotado em gráfico
+train=subset(train,select = -id)
+
+# id = 1:nrow(train)
+# id_name = "id"
+# train <- cbind(id = id, train)
+
+# Gráfico histograma - frequencia dos dados de cada feature filtrado para maligno e outro benigno
+train_M <- filter(train, diagnosis == "M")
+train_B <- filter(train, diagnosis == "B")
+
+train_M = subset(train_M,select = -diagnosis)
+train_B = subset(train_B,select = -diagnosis)
+
+ggplot(gather(train_M), aes(x = value)) + 
+  geom_histogram(bins = 10) + 
+  facet_wrap(~key, scales = 'free_x') +
+  labs( x = "Dados", y = "Frequencia") + 
+  ggtitle("Visualização geral dos dados referente a cancer tipo maligno classifcado por feature")
+
+ggplot(gather(train_B), aes(x = value)) + 
+  geom_histogram(bins = 10) + 
+  facet_wrap(~key, scales = 'free_x') + 
+  labs( x = "Dados", y = "Frequencia") + 
+  ggtitle("Visualização geral ddos dados referente a cancer tipo benigno classifcado por feature")
