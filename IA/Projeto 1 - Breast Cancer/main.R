@@ -119,17 +119,21 @@ ggplot(gather(train_B), aes(x = value)) +
 verificaknn <- function(datasetTrain, datasetTest, vetorK, posicaoClassificador){
   classesTrain <- datasetTrain[ ,posicaoClassificador]
   datasetTrain <- datasetTrain[ , -posicaoClassificador]
-  
+
   classesTest <- datasetTest[ , posicaoClassificador]
   datasetTest <- datasetTest[ , -posicaoClassificador]
   
   result <- knn(datasetTrain, datasetTest, classesTrain, vetorK)
   
   # Matriz de confusão
-  print(table(classesTest, result))
+  print("Matriz confusão:")
+  print(as.matrix(table(classesTest, result)))
+  matriz <- as.matrix(table(classesTest, result))
   
-  # Calculo do índice de acerto de k
-  print(round(length(result) / length(datasetTest), digits = 2))
+  # Indíce de acerto
+  acc <- sum(diag(matriz))/nrow(datasetTest)
+  print("Indice de acerto:")
+  print(acc)
 }
 
 # k = 1
@@ -140,3 +144,4 @@ verificaknn(train, test, 3, 1)
 verificaknn(train, test, 5, 1)
 # k = 11
 verificaknn(train, test, 11, 1)
+
