@@ -4,6 +4,7 @@ library(ggplot2)
 library(dslabs)
 library(reshape2)
 library(stringr)
+library(class)
 
 data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE,  dec=".", stringsAsFactors=FALSE)
 
@@ -53,6 +54,9 @@ str(train)
 sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
 sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
 
+# Remoção da feature id para não ser considerado em plots e em algoritmos de IA
+cancers=subset(cancers,select = -id)
+
 # Dataset de treino 75%  da base original e teste 25% base original.
 set.seed(123)
 smp_size <- floor(0.75 * nrow(cancers))
@@ -85,9 +89,6 @@ ggplot(data=train, aes(x=radius_mean, y=texture_mean, group=diagnosis, color=dia
 
 ggplot(train, aes(x=texture_mean, y=area_mean)) + geom_point()
 
-# Remoção da feature id para não ser plotado em gráfico
-train=subset(train,select = -id)
-
 # id = 1:nrow(train)
 # id_name = "id"
 # train <- cbind(id = id, train)
@@ -110,3 +111,32 @@ ggplot(gather(train_B), aes(x = value)) +
   facet_wrap(~key, scales = 'free_x') + 
   labs( x = "Dados", y = "Frequencia") + 
   ggtitle("Visualização geral ddos dados referente a cancer tipo benigno classifcado por feature")
+
+# ----------------------- Algoritmo KNN com k = 1,3,5 e 11 vizinhos ------------------------------
+
+# train[,1] -> coluna diagnosis
+
+verificaknn <- function(datasetTrain, datasetTest, vetorK, posicaoClassificador){
+  classesTrain <- datasetTrain[ ,posicaoClassificador]
+  datasetTrain <- datasetTrain[ , -posicaoClassificador]
+  
+  classesTest <- datasetTest[ , posicaoClassificador]
+  datasetTest <- datasetTest[ , -posicaoClassificador]
+  
+  result <- knn(datasetTrain, datasetTest, classesTrain, vetorK)
+  
+  # Matriz de confusão
+  print(table(classesTest, result))
+  
+  # Calculo do índice de acerto de k
+  print(round(length(result) / length(datasetTest), digits = 2))
+}
+
+# k = 1
+verificaknn(train, test, 1, 1)
+# k = 3
+verificaknn(train, test, 3, 1)
+# k = 5
+verificaknn(train, test, 5, 1)
+# k = 11
+verificaknn(train, test, 11, 1)
