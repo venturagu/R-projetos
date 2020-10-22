@@ -5,6 +5,8 @@ library(dslabs)
 library(reshape2)
 library(stringr)
 library(class)
+library(rpart)
+library(rpart.plot)
 
 data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE,  dec=".", stringsAsFactors=FALSE)
 
@@ -65,6 +67,7 @@ train_ind <- sample(seq_len(nrow(cancers)), size = smp_size)
 train <- cancers[train_ind, ]
 test <- cancers[-train_ind, ]
 
+
 # ---------- Gráficos para verificar se visualmente os dados são classificaveis---------------------------------------------
 
 # Gráfico de pizza - quantidade de cancer diagnosticado como maligno ou benigno
@@ -93,6 +96,7 @@ ggplot(train, aes(x=texture_mean, y=area_mean)) + geom_point()
 # id_name = "id"
 # train <- cbind(id = id, train)
 
+
 # Gráfico histograma - frequencia dos dados de cada feature filtrado para maligno e outro benigno
 train_M <- filter(train, diagnosis == "M")
 train_B <- filter(train, diagnosis == "B")
@@ -112,23 +116,28 @@ ggplot(gather(train_B), aes(x = value)) +
   labs( x = "Dados", y = "Frequencia") + 
   ggtitle("Visualização geral ddos dados referente a cancer tipo benigno classifcado por feature")
 
+
 # ----------------------- Algoritmo KNN com k = 1,3,5 e 11 vizinhos ------------------------------
 
-# train[,1] -> coluna diagnosis
-
+# train[,1] representa coluna diagnosis
 verificaknn <- function(datasetTrain, datasetTest, vetorK, posicaoClassificador){
   classesTrain <- datasetTrain[ ,posicaoClassificador]
   datasetTrain <- datasetTrain[ , -posicaoClassificador]
-  
+
   classesTest <- datasetTest[ , posicaoClassificador]
   datasetTest <- datasetTest[ , -posicaoClassificador]
   
+  print(length(classesTest))
   result <- knn(datasetTrain, datasetTest, classesTrain, vetorK)
   # Matriz de confusão
-  print(table(classesTest, result))
+  print("Matriz confusão:")
+  print(as.matrix(table(classesTest, result)))
+  matriz <- as.matrix(table(classesTest, result))
   
-  # Calculo do índice de acerto de k
-  print(round(length(result) / length(datasetTest), digits = 2))
+  # Indíce de acerto
+  acc <- sum(diag(matriz))/nrow(datasetTest)
+  print("Indice de acerto:")
+  print(acc)
 }
 
 # k = 1
@@ -139,3 +148,28 @@ verificaknn(train, test, 3, 1)
 verificaknn(train, test, 5, 1)
 # k = 11
 verificaknn(train, test, 11, 1)
+
+
+# -------------------- Algoritmo de árvore de decisão --------------------------
+modelo <- rpart(diagnosis~., train, method = "class", control = rpart.control(minisplit = 1))
+
+plot <- rpart.plot(modelo, type = 5)
+
+verificaDesicionTree <- function(modelo, datasetTest, posicaoClassificador){
+  classesTest <- datasetTest[ ,posicaoClassificador]
+  datasetTest <- datasetTest[ , -posicaoClassificador]
+  
+  pred <- predict(modelo, datasetTest, type = "class")
+  
+  # Matriz de confusão
+  print("Matriz confusão:")
+  matriz <- as.matrix(table(classesTest, pred))
+  print(matriz)
+  
+  # Indíce de acerto
+  acc <- sum(diag(matriz))/nrow(datasetTest)
+  print("Indice de acerto:")
+  print(acc)
+}
+
+verificaDesicionTree(modelo, test, 1)
