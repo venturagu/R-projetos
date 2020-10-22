@@ -124,7 +124,6 @@ verificaknn <- function(datasetTrain, datasetTest, vetorK, posicaoClassificador)
   datasetTest <- datasetTest[ , -posicaoClassificador]
   
   result <- knn(datasetTrain, datasetTest, classesTrain, vetorK)
-  
   # Matriz de confusão
   print(table(classesTest, result))
   
