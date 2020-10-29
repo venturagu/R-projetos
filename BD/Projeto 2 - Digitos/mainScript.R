@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(dslabs)
 library(reshape2) # melt a data.frame
+library(plyr)
 
 # ------------------------------------ First task -----------------------------
 # Leitura de um arquivo da quarta linha em diante.
@@ -59,7 +60,8 @@ for (x in vect_files) {
   file_name <- unlist(strsplit(x, "\\."))
   file_name <- unlist(strsplit(file_name[1], "\\_"))
   v <- cbind(number = file_name[1], v)
-  df <- rbind(df, v)
+  v <- as.data.frame(v)
+  df <- rbind.fill(df, v)
 }
 
 View(df)
