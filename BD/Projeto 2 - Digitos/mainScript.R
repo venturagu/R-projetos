@@ -11,167 +11,63 @@ install.packages('caret')
 
 data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE,  dec=".", stringsAsFactors=FALSE)
 
-# Renomeando as colunas com base no indicado no link do dataset https://www.kaggle.com/uciml/breast-cancer-wisconsin-data
-cancers <- data %>%
-  rename(
-    id = V1,
-    diagnosis = V2, # Significado: Câncer de mama M -Maligno, B - Beligno
-    radius_mean = V3, # Significado: Raio medio do câncer
-    texture_mean = V4, # Significado: Média de escala de cinza do câncer
-    perimeter_mean = V5, # Significado: Media de perimetro do câncer
-    area_mean = V6, # Significado: Média de area do câncer 
-    smoothness_mean = V7,
-    compactness_mean = V8,
-    concavity_mean = V9,
-    concave_points = V10,
-    symmetry_mean = V11,
-    fractal_dimension = V12,
-    radius_se = V13,
-    texture_se = V14,
-    perimeter_se = V15,
-    area_se = V16,
-    smoothness_se = V17,
-    compactness_se = V18,
-    concavity_se = V19,
-    concave_points_se = V20,
-    symmetry_se = V21,
-    fractal_dimension_se = V22,
-    radius_worst = V23,
-    texture_worst = V24,
-    perimeter_worst = V25,
-    area_worst = V26,
-    smoothness_worst = V27,
-    compactness_worst = V28,
-    concavity_worst = V29,
-    concave_points_worst = V30,
-    symmetry_worst = V31,
-    fractal_dimension_worst = V32
-  )
+# ------------------------------------ First task -----------------------------
+# Leitura de um arquivo da quarta linha em diante.
+file <- read.csv("./DigitosCompleto/0_001.BMP.inv.pgm", header = FALSE, skip = 3, sep = " ")
 
-# Verificar se existem dados vazios
-sum(is.na(cancers)) # Nenhum valor de atributo ausente
+# Removendo ultima coluna que contém apenas dados vazios
+file <- file[-18]
 
-# Entendimento previo do dataset
-dim(cancers)
-str(train)
-sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
-sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
+# Exploração do arquivo
+dim(file)
+View(head(file, n=5))
+str(file)
 
-# Remoção da feature id para não ser considerado em plots e em algoritmos de IA
-cancers=subset(cancers,select = -id)
+# Transformar em uma matrix 64x64
+v<-as.vector(t(file))
+NROW(v) # Temos 4097 linhas
+NCOL(v) # Temos 1 coluna
+v<-v[-4097]
+v<-as.numeric(v)
+v <- t(v)
+mt<-matrix(v, byrow =F, 64,64)
 
-# Dataset de treino 75%  da base original e teste 25% base original.
-set.seed(123)
-smp_size <- floor(0.75 * nrow(cancers))
-train_ind <- sample(seq_len(nrow(cancers)), size = smp_size)
+# Apresentação do conteúdo do arquivo
+image(1:64, 1:64, mt, col=gray((0:255)/255))
 
-train <- cancers[train_ind, ]
-test <- cancers[-train_ind, ]
+# ------------------------------------ Second task -----------------------------
+# Montar um dataframe com o conteúdo de todos os arquivos
 
+# Caminho raiz do CSV
+files <- list.files(path = "./DigitosCompleto")
 
-# ---------- Gráficos para verificar se visualmente os dados são classificaveis---------------------------------------------
+# Identificar o zero 
 
-# Gráfico de pizza - quantidade de cancer diagnosticado como maligno ou benigno
-diagnostico_frequencia <-table(train$diagnosis)
-diagnostico_porcentagem <- round(prop.table(diagnostico_frequencia)*100) # "% of total sum of row of column"
-diagnostico_porcentagem # B -> 65% e M -> 35%
-diagnostico_tabela <-as.data.frame(diagnostico_porcentagem)
-colnames(diagnostico_tabela)[1] <- "Diagnostico"
+#Gerar um dataframe a partir dos arquivos lidos
+#Cada arquivo sera uma linha do dataframe
 
-bp<- ggplot(diagnostico_tabela, aes(x="", y= Freq, fill=Diagnostico))+
-  geom_bar(width = 1, stat = "identity")
+# Vetor com nome de todos os arquivos
+vect_files <- as.vector(t(files))
 
-pie <- bp + coord_polar("y", start=0) +
-  labs(x=NULL,y=NULL,title="Diagnostico B- Benigno / M- Maligno") 
-pie
+# Ambiente de Teste - 4 arquivos para leitura : (descomentar)
+# vect_files <- head(vect_files,4)
 
-# plots de teste:
-hist(train$radius_mean)
+df <- data.frame()
 
-ggplot(data=train, aes(x=radius_mean, y=texture_mean, group=diagnosis, color=diagnosis)) +
-  geom_bar(stat='identity')
-
-ggplot(train, aes(x=texture_mean, y=area_mean)) + geom_point()
-
-# id = 1:nrow(train)
-# id_name = "id"
-# train <- cbind(id = id, train)
-
-
-# Gráfico histograma - frequencia dos dados de cada feature filtrado para maligno e outro benigno
-train_M <- filter(train, diagnosis == "M")
-train_B <- filter(train, diagnosis == "B")
-
-train_M = subset(train_M,select = -diagnosis)
-train_B = subset(train_B,select = -diagnosis)
-
-ggplot(gather(train_M), aes(x = value)) + 
-  geom_histogram(bins = 10) + 
-  facet_wrap(~key, scales = 'free_x') +
-  labs( x = "Dados", y = "Frequencia") + 
-  ggtitle("Visualização geral dos dados referente a cancer tipo maligno classifcado por feature")
-
-ggplot(gather(train_B), aes(x = value)) + 
-  geom_histogram(bins = 10) + 
-  facet_wrap(~key, scales = 'free_x') + 
-  labs( x = "Dados", y = "Frequencia") + 
-  ggtitle("Visualização geral ddos dados referente a cancer tipo benigno classifcado por feature")
-
-
-# ----------------------- Algoritmo KNN com k = 1,3,5 e 11 vizinhos ------------------------------
-
-# train[,1] representa coluna diagnosis
-verificaknn <- function(datasetTrain, datasetTest, vetorK, posicaoClassificador){
-  classesTrain <- datasetTrain[ ,posicaoClassificador]
-  datasetTrain <- datasetTrain[ , -posicaoClassificador]
-  
-  classesTest <- datasetTest[ , posicaoClassificador]
-  datasetTest <- datasetTest[ , -posicaoClassificador]
-  
-  print(length(classesTest))
-  result <- knn(datasetTrain, datasetTest, classesTrain, vetorK)
-  # Matriz de confusão
-  print("Matriz confusão:")
-  print(confusionMatrix(table(classesTest, result)))
-  #print(as.matrix(table(classesTest, result)))
-  #matriz <- as.matrix(table(classesTest, result))
-  
-  # Indíce de acerto
-  #acc <- sum(diag(matriz))/nrow(datasetTest)
-  #print("Indice de acerto:")
-  #print(acc)
+for (x in vect_files) {
+  filepath <- file.path(paste("./DigitosCompleto/", x ,sep=""))
+  file_read <- read.csv(filepath, header = FALSE, skip = 3, sep = " ")
+  file_read <- file_read[-18]
+  v<-as.vector(t(file_read))
+  v<-v[-4097]
+  v<-as.numeric(v)
+  v <- t(v)
+  print(length(v))
+  file_name <- unlist(strsplit(x, "\\."))
+  file_name <- unlist(strsplit(file_name[1], "\\_"))
+  v <- cbind(number = file_name[1], v)
+  v <- as.data.frame(v)
+  df <- rbind.fill(df, v)
 }
 
-# k = 1
-verificaknn(train, test, 1, 1)
-# k = 3
-verificaknn(train, test, 3, 1)
-# k = 5
-verificaknn(train, test, 5, 1)
-# k = 11
-verificaknn(train, test, 11, 1)
-
-
-# -------------------- Algoritmo de árvore de decisão --------------------------
-modelo <- rpart(diagnosis~., train, method = "class", control = rpart.control(minisplit = 1))
-
-plot <- rpart.plot(modelo, type = 5)
-
-verificaDesicionTree <- function(modelo, datasetTest, posicaoClassificador){
-  classesTest <- datasetTest[ ,posicaoClassificador]
-  datasetTest <- datasetTest[ , -posicaoClassificador]
-  
-  pred <- predict(modelo, datasetTest, type = "class")
-  
-  # Matriz de confusão
-  print("Matriz confusão:")
-  matriz <- as.matrix(table(classesTest, pred))
-  print(matriz)
-  
-  # Indíce de acerto
-  acc <- sum(diag(matriz))/nrow(datasetTest)
-  print("Indice de acerto:")
-  print(acc)
-}
-
-verificaDesicionTree(modelo, test, 1)
+View(df)
