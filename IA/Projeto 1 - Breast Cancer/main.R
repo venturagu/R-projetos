@@ -47,6 +47,7 @@ cancers <- data %>%
     fractal_dimension_worst = V32
   )
 
+
 # Verificar se existem dados vazios
 sum(is.na(cancers)) # Nenhum valor de atributo ausente
 
@@ -56,8 +57,14 @@ str(train)
 sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
 sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
 
+
 # Remoção da feature id para não ser considerado em plots e em algoritmos de IA
 cancers=subset(cancers,select = -id)
+ 
+#Plot geral das features
+minCancers <- cancers[ , 1:4]
+plot(minCancers )
+
 
 # Dataset de treino 75%  da base original e teste 25% base original.
 set.seed(123)
@@ -153,7 +160,7 @@ verificaknn(train, test, 11, 1)
 # -------------------- Algoritmo de árvore de decisão --------------------------
 modelo <- rpart(diagnosis~., train, method = "class", control = rpart.control(minisplit = 1))
 
-plot <- rpart.plot(modelo, type = 5)
+plot <- rpart.plot(modelo, type = 3)
 
 verificaDesicionTree <- function(modelo, datasetTest, posicaoClassificador){
   classesTest <- datasetTest[ ,posicaoClassificador]
@@ -173,3 +180,5 @@ verificaDesicionTree <- function(modelo, datasetTest, posicaoClassificador){
 }
 
 verificaDesicionTree(modelo, test, 1)
+verificaDesicionTree(modelo, cancers, 1) #Utilizando o modelo para predizer todo o data set
+verificaDesicionTree(modelo, train, 1) #Utilizando modelo para predizer o data set de treino
