@@ -53,7 +53,7 @@ sum(is.na(cancers)) # Nenhum valor de atributo ausente
 
 # Entendimento previo do dataset
 dim(cancers)
-str(train)
+str(cancers)
 sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
 sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
 
@@ -134,7 +134,7 @@ verificaknn <- function(datasetTrain, datasetTest, vetorK, posicaoClassificador)
   classesTest <- datasetTest[ , posicaoClassificador]
   datasetTest <- datasetTest[ , -posicaoClassificador]
   
-  print(length(classesTest))
+  
   result <- knn(datasetTrain, datasetTest, classesTrain, vetorK)
   # Matriz de confusão
   print("Matriz confusão:")
@@ -182,3 +182,6 @@ verificaDesicionTree <- function(modelo, datasetTest, posicaoClassificador){
 verificaDesicionTree(modelo, test, 1)
 verificaDesicionTree(modelo, cancers, 1) #Utilizando o modelo para predizer todo o data set
 verificaDesicionTree(modelo, train, 1) #Utilizando modelo para predizer o data set de treino
+
+p <- ggplot(cancers, aes(perimeter_worst, concave_points_worst, group=diagnosis, colour = diagnosis))
+p + geom_point()
