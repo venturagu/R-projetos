@@ -159,7 +159,6 @@ verificaknn(train, test, 11, 1)
 
 # -------------------- Algoritmo de árvore de decisão --------------------------
 modelo <- rpart(diagnosis~., train, method = "class", control = rpart.control(minisplit = 1))
-
 plot <- rpart.plot(modelo, type = 3)
 
 verificaDesicionTree <- function(modelo, datasetTest, posicaoClassificador){
