@@ -10,10 +10,12 @@ library(rpart.plot)
 library('caret')
 library(plyr)
 install.packages('caret')
+library(BBmisc)
+library(factoextra)
+install.packages("factoextra")
 
 
-
-# ------------------------------------ First task -----------------------------
+# ------------------------------------ Primeiro passo -----------------------------
 # Leitura de um arquivo da quarta linha em diante.
 file <- read.csv("./DigitosCompleto/0_001.BMP.inv.pgm", header = FALSE, skip = 3, sep = " ")
 
@@ -47,38 +49,21 @@ image(1:64, 1:64, mt, col=gray((0:255)/255))
 
 
 
-# ------------------------------------ Second task -----------------------------
+# ------------------------------------ Segundo Passo -----------------------------
 # Montar um dataframe com o conteúdo de todos os arquivos
-
-
-
 # Caminho raiz do CSV
 files <- list.files(path = "./DigitosCompleto")
 
-
-
 # Identificar o zero 
-
-
-
 #Gerar um dataframe a partir dos arquivos lidos
 #Cada arquivo sera uma linha do dataframe
-
-
 
 # Vetor com nome de todos os arquivos
 vect_files <- as.vector(t(files))
 
-
-
 # Ambiente de Teste - 34 arquivos para leitura : (descomentar)
-# vect_files <- head(vect_files,35)
-
-
-
+vect_files <- head(vect_files,35)
 df <- data.frame()
-
-
 
 for (x in vect_files) {
   filepath <- file.path(paste("./DigitosCompleto/", x ,sep=""))
@@ -99,6 +84,15 @@ for (x in vect_files) {
   }
 }
 
-
-
 View(df)
+
+# ------------------------------------ Terceiro passo -----------------------------
+# Montar um dataframe com o conteúdo de todos os arquivos
+
+#Normalizando o dataset: Há outros metodos alem do range para normalizar!
+df.norm <- normalize(df, method = 'range')
+View(df.norm)
+
+#Aplicando PCA para verificar a sugestão de redução de dimensão de forma estatistica
+pca <- prcomp(df.norm, center = TRUE)
+summary(pca) # O Data set é explicado em 90% a partir do componente PC24
