@@ -59,9 +59,13 @@ classes <-cancers[, 2]
 cl <- kmeans(data, 2)
 
 #Comparar obtido com real do dataset
-#replace(x, x==0, 1)
-classes <-replace(classes, classes == "M", 1) #Atribuindo maligno com 1
-classes <-replace(classes, classes == "B", 2) # Atribuindo benigno com 2
 
-as.numeric(classes)
+
+classes <-replace(classes, classes == "M", 2) #Atribuindo maligno com 1
+classes <-replace(classes, classes == "B", 1) # Atribuindo benigno com 2
+classes <- as.numeric(classes)
+
 cl$cluster
+
+compar <- classes == cl$cluster
+taxaAcerto <- (table(compar)[names(table(compar)) == TRUE] * 100) / length(compar) #Contando a taxa de acerto: 14.58
