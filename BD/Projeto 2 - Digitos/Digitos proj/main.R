@@ -62,7 +62,7 @@ files <- list.files(path = "./DigitosCompleto")
 vect_files <- as.vector(t(files))
 
 # Ambiente de Teste - 34 arquivos para leitura : (descomentar)
-vect_files <- head(vect_files,35)
+#vect_files <- head(vect_files,100)
 df <- data.frame()
 
 for (x in vect_files) {
@@ -94,5 +94,6 @@ df.norm <- normalize(df, method = 'range')
 View(df.norm)
 
 #Aplicando PCA para verificar a sugestão de redução de dimensão de forma estatistica
-pca <- prcomp(df.norm, center = TRUE)
-summary(pca) # O Data set é explicado em 90% a partir do componente PC24
+pca <- prcomp(df.norm, center = TRUE) #1999 Componentes principais
+options(max.print=999999)
+summary(pca) # A partir do 340 componente, a taxa de riqueza acumulada dos dados se mantem estavel em 90%
