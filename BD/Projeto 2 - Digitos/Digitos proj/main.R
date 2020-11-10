@@ -76,7 +76,7 @@ for (x in vect_files) {
   
   file_name <- unlist(strsplit(x, "\\."))
   file_name <- unlist(strsplit(file_name[1], "\\_"))
-  v <- cbind(number = file_name[1], v)
+  v <- cbind(v, number = file_name[1])
   v <- as.numeric(v)
   
   if(NCOL(v) != 4096){
