@@ -20,17 +20,14 @@ install.packages("factoextra")
 file <- read.csv("./DigitosCompleto/0_001.BMP.inv.pgm", header = FALSE, skip = 3, sep = " ")
 
 
-
 # Removendo ultima coluna que contém apenas dados vazios
 file <- file[-18]
-
 
 
 # Exploração do arquivo
 dim(file)
 View(head(file, n=5))
 str(file)
-
 
 
 # Transformar em uma matrix 64x64
@@ -43,10 +40,8 @@ v <- t(v)
 mt<-matrix(v, byrow =F, 64,64)
 
 
-
 # Apresentação do conteúdo do arquivo
 image(1:64, 1:64, mt, col=gray((0:255)/255))
-
 
 
 # ------------------------------------ Segundo Passo -----------------------------
@@ -79,30 +74,61 @@ for (x in vect_files) {
   v <- cbind(v, number = file_name[1])
   v <- as.numeric(v)
   
-  if(NCOL(v) != 4096){
+  if(length(v) == 4097){
     df <- rbind(df, v)  
   }
 }
 
 View(df)
 
+# O df aprensenta 1999 linhas, ou seja, o data set de digitos tinha apenas 
+# um outlier com dimensão diferente de 4096, não sendo incluido no dataframe
+# O df apresenta 4097 colunas onde 4096 são os digitos binario, e a ultima coluna a classe ( 0 à 9)
+dim(df)
+
 # ------------------------------------ Terceiro passo -----------------------------
 # Montar um dataframe com o conteúdo de todos os arquivos
 
-#Normalizando o dataset: Há outros metodos alem do range para normalizar!
-df.norm <- normalize(df)
-View(df.norm)
+# Normalizando o dataset: Há outros metodos alem do range para normalizar!
+# df.norm <- normalize(df)
+# View(df.norm)
 
-#Aplicando PCA para verificar a sugestão de redução de dimensão de forma estatistica
-pca <- prcomp(df.norm, center = TRUE) #1999 Componentes principais
+# Realize a análise de variância de cada uma das colunas (var). 
+# Alguma coluna apresenta variância muito menor do que outras? Se sim, quantas e quais?
+variance <- sapply(df, var)
+summary(variance)
+
+low_variance <- variance[unlist(variance >= 0.000000 & variance <= 0.0009)]
+no_variance <- variance[unlist(variance == 0.000000)]
+
+length(low_variance)
+length(no_variance)
+
+# Verificando as features que tem nenhuma variancia, ou seja, colunas com valores apenas em 0 ou apenas 1
+no_variance <- which(apply(df, 2, var) >= 0 & apply(df, 2, var) <= 0.0009)
+View(no_variance)
+
+# Novo dataframe sem colunas que não apresentam variancia
+new_df <- df[ - as.numeric(which(apply(df, 2, var) >= 0 & apply(df, 2, var) <= 0.0009))]
+str(new_df)
+dim(new_df)
+View(new_df)
+
+# Aplique o PCA e comente sobre o método. 
+# Quantas são as dimensões resultantes? Qual a variabilidade das primeiras dimensões? Comente.
+
+# Aplicando PCA para verificar a sugestão de redução de dimensão de forma estatistica
+pca <- prcomp(new_df, center = TRUE) #1999 Componentes principais
+
 options(max.print=999999)
-summary(pca) # A partir do 328 componente, a taxa de riqueza acumulada dos dados se mantem estavel em 90%
+summary(pca) # A partir do 335 componente, a taxa de riqueza acumulada dos dados se mantem estavel em 90%
+View(pca)
 
-#Graficos dos componentes
+# Graficos dos componentes
 fviz_eig(pca)
 
 #Removendo a sobreposição de elementos pois estava demandando muito processamento
-fviz_pca_ind(pca,col.ind = "black") #
+fviz_pca_ind(pca,col.ind = "black") 
 fviz_pca_biplot(pca,
                 col.var = "#2E9FDF", # Variables color
                 col.ind = "#696969"  # Individuals color
