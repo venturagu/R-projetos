@@ -1,4 +1,4 @@
-library("tidyr")
+library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(dslabs)
@@ -7,6 +7,10 @@ library(stringr)
 library(class)
 library(rpart)
 library(rpart.plot)
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra)
+
 
 data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE,  dec=".", stringsAsFactors=FALSE)
 
@@ -52,8 +56,11 @@ dim(cancers)
 sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
 sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
 
-data <- cancers[, -1]
-data <- data[, -1]
+#Ordenando o dataset para aplicar o Kmeans
+cancers <- cancers[order(cancers$diagnosis),]
+
+data <- cancers[, -1] #Retiro id
+data <- data[, -1] #Retiro classificação
 classes <-cancers[, 2]
 
 cl <- kmeans(data, 2)
@@ -61,12 +68,35 @@ cl <- kmeans(data, 2)
 #Comparar obtido com real do dataset
 
 
-classes <-replace(classes, classes == "M", 1) #Atribuindo maligno com 1
-classes <-replace(classes, classes == "B", 2) # Atribuindo benigno com 2
+classes <-replace(classes, classes == "B", 1) #Atribuindo maligno com 1
+classes <-replace(classes, classes == "M", 2) # Atribuindo benigno com 2
 classes <- as.numeric(classes)
 
 cl$cluster
 
 compar <- classes == cl$cluster
-taxaAcerto <- (table(compar)[names(table(compar)) == TRUE] * 100) / length(compar) #Contando a taxa de acerto: 85.41
+taxaAcerto <- (table(compar)[names(table(compar)) == TRUE] * 100) / length(compar) #Contando a taxa de acerto: 14,5
 taxaAcerto
+
+#Algoritmo do cotovelo
+#Resumo: Achar graficamente um numero otimo de K's (agrupamentos)
+k.max<- 2
+wss <- sapply(2:k.max, function(k){kmeans(data, k, nstart=2 )$tot.withinss})
+print(wss)
+#plot(2:k.max, wss, type="b", pch = 19,  xlab="Number of clusters K", ylab="Total within-clusters sum of squares")
+fviz_nbclust(data, kmeans, method = "wss") 
+
+##Codigo da dani
+set.seed(123)
+# function to compute total within-cluster sum of square 
+wss <- function(k) {
+  kmeans(data, k, nstart = 10 )$tot.withinss
+}
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 1:15
+# extract wss for 2-15 clusters
+wss_values <- map_dbl(k.values, wss)
+plot(k.values, wss_values,
+     type="b", pch = 19, frame = FALSE, 
+     xlab="Number of clusters K",
+     ylab="Total within-clusters sum of squares")
