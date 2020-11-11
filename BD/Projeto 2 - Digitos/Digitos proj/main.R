@@ -90,10 +90,20 @@ View(df)
 # Montar um dataframe com o conteúdo de todos os arquivos
 
 #Normalizando o dataset: Há outros metodos alem do range para normalizar!
-df.norm <- normalize(df, method = 'range')
+df.norm <- normalize(df)
 View(df.norm)
 
 #Aplicando PCA para verificar a sugestão de redução de dimensão de forma estatistica
 pca <- prcomp(df.norm, center = TRUE) #1999 Componentes principais
 options(max.print=999999)
-summary(pca) # A partir do 340 componente, a taxa de riqueza acumulada dos dados se mantem estavel em 90%
+summary(pca) # A partir do 328 componente, a taxa de riqueza acumulada dos dados se mantem estavel em 90%
+
+#Graficos dos componentes
+fviz_eig(pca)
+
+#Removendo a sobreposição de elementos pois estava demandando muito processamento
+fviz_pca_ind(pca,col.ind = "black") #
+fviz_pca_biplot(pca,
+                col.var = "#2E9FDF", # Variables color
+                col.ind = "#696969"  # Individuals color
+)
