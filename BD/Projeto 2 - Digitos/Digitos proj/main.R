@@ -93,19 +93,35 @@ dim(df)
 # df.norm <- normalize(df)
 # View(df.norm)
 
+# Realize a análise de variância de cada uma das colunas (var). 
+# Alguma coluna apresenta variância muito menor do que outras? Se sim, quantas e quais?
+variance <- sapply(df, var)
+summary(variance)
+
+low_variance <- variance[unlist(variance >= 0.000000 & variance <= 0.0009)]
+no_variance <- variance[unlist(variance == 0.000000)]
+
+length(low_variance)
+length(no_variance)
+
 # Verificando as features que tem nenhuma variancia, ou seja, colunas com valores apenas em 0 ou apenas 1
-which(apply(df, 2, var) == 0)
+no_variance <- which(apply(df, 2, var) >= 0 & apply(df, 2, var) <= 0.0009)
+View(no_variance)
 
 # Novo dataframe sem colunas que não apresentam variancia
-new_df <- df[ - as.numeric(which(apply(new_df, 2, var) == 0))]
+new_df <- df[ - as.numeric(which(apply(df, 2, var) >= 0 & apply(df, 2, var) <= 0.0009))]
 str(new_df)
 dim(new_df)
+View(new_df)
+
+# Aplique o PCA e comente sobre o método. 
+# Quantas são as dimensões resultantes? Qual a variabilidade das primeiras dimensões? Comente.
 
 # Aplicando PCA para verificar a sugestão de redução de dimensão de forma estatistica
 pca <- prcomp(new_df, center = TRUE) #1999 Componentes principais
 
 options(max.print=999999)
-summary(pca) # A partir do 328 componente, a taxa de riqueza acumulada dos dados se mantem estavel em 90%
+summary(pca) # A partir do 335 componente, a taxa de riqueza acumulada dos dados se mantem estavel em 90%
 View(pca)
 
 # Graficos dos componentes
