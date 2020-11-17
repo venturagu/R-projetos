@@ -2,15 +2,12 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(dslabs)
-library(reshape2)
-library(stringr)
-library(class)
-library(rpart)
 library(rpart.plot)
 library(tidyverse)  # data manipulation
+# install.packages("tidyverse")
 library(cluster)    # clustering algorithms
 library(factoextra)
-
+library(FactoMineR)
 
 data <- read.csv2("wdbc.data", sep =",", na.strings = c('','NA','na','N/A','n/a','NaN','nan'), header = FALSE,  dec=".", stringsAsFactors=FALSE)
 
@@ -56,47 +53,66 @@ dim(cancers)
 sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
 sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
 
-#Ordenando o dataset para aplicar o Kmeans
-cancers <- cancers[order(cancers$diagnosis),]
+# Ordenando o dataset para aplicar o Kmeans
+cancers <- cancers[order(cancers$diagnosis),] # ordena primeiro benigno depois maligno
 
-data <- cancers[, -1] #Retiro id
-data <- data[, -1] #Retiro classificação
+data <- cancers[, -1] # Retiro id
+data <- data[, -1] # Retiro classificação
 classes <-cancers[, 2]
+
+# Comparar obtido com real do dataset tranformando "B" e "M" em dados numérico
+classes <-replace(classes, classes == "B", 1) # Atribuindo benigno com 1
+classes <-replace(classes, classes == "M", 2) # Atribuindo maligno com 2
+classes <- as.numeric(classes)
+
+# plot para visualizar distribuição das classes considerando primieira features do dataset
+plot(cancers[, 2:10], col = classes)
 
 cl <- kmeans(data, 2)
 
-#Comparar obtido com real do dataset
-
-
-classes <-replace(classes, classes == "B", 1) #Atribuindo maligno com 1
-classes <-replace(classes, classes == "M", 2) # Atribuindo benigno com 2
-classes <- as.numeric(classes)
-
 cl$cluster
+classes
 
 compar <- classes == cl$cluster
-taxaAcerto <- (table(compar)[names(table(compar)) == TRUE] * 100) / length(compar) #Contando a taxa de acerto: 14,5
+taxaAcerto <- (table(compar)[names(table(compar)) == TRUE] * 100) / length(compar) # Contando a taxa de acerto: 14,5
 taxaAcerto
 
-#Algoritmo do cotovelo
-#Resumo: Achar graficamente um numero otimo de K's (agrupamentos)
-k.max<- 2
+fviz_cluster(cl, data = data, geom = "point")
+
+# ------------------------ Algoritmo do cotovelo -------------------------------
+
+# Resumo: Achar graficamente um numero otimo de K's (agrupamentos)
+k.max <- 2
 wss <- sapply(2:k.max, function(k){kmeans(data, k, nstart=2 )$tot.withinss})
 print(wss)
-#plot(2:k.max, wss, type="b", pch = 19,  xlab="Number of clusters K", ylab="Total within-clusters sum of squares")
+
+# plot(2:k.max, wss, type="b", pch = 19,  xlab="Number of clusters K", ylab="Total within-clusters sum of squares")
 fviz_nbclust(data, kmeans, method = "wss") 
 
-##Codigo da dani
+## Codigo da dani
 set.seed(123)
-# function to compute total within-cluster sum of square 
-wss <- function(k) {
-  kmeans(data, k, nstart = 10 )$tot.withinss
-}
-# Compute and plot wss for k = 1 to k = 15
-k.values <- 1:15
-# extract wss for 2-15 clusters
+
+# função para calcular a soma total do quadrado dentro do cluster
+# total within-cluster (tot.withinss)
+wss <- function(k) {kmeans(data, k)$tot.withinss}
+
+# Calcule e plote wss para k = 1 a k = 15
+k.values <- 1:10
+
+# extrair wss para 2-15 clusters
 wss_values <- map_dbl(k.values, wss)
+
 plot(k.values, wss_values,
      type="b", pch = 19, frame = FALSE, 
-     xlab="Number of clusters K",
-     ylab="Total within-clusters sum of squares")
+     xlab="Número K de clusters",
+     ylab="Soma total dos quadrados dentro dos clusters")
+
+# Metodo cotovelo já implementado por fviz_nbclust
+n_clust <- fviz_nbclust(data, kmeans, method = "wss") +
+  geom_vline(xintercept = 2, linetype = 2)+
+  labs(subtitle = "Elbow method")
+
+n_clust
+
+n_clust_list <- n_clust$data
+n_clust_list
