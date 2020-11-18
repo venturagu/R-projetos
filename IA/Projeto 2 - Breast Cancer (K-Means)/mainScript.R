@@ -53,11 +53,16 @@ dim(cancers)
 sum(str_count(cancers$diagnosis, "M")) # 212 Maligno
 sum(str_count(cancers$diagnosis, "B")) # 357 Benigno
 
+
 # Ordenando o dataset para aplicar o Kmeans
 cancers <- cancers[order(cancers$diagnosis),] # ordena primeiro benigno depois maligno
 
 data <- cancers[, -1] # Retiro id
 data <- data[, -1] # Retiro classificação
+
+# dataset com muitas features, aplicar escala
+data_scale<-as.data.frame(scale(data))
+
 classes <-cancers[, 2]
 
 # Comparar obtido com real do dataset tranformando "B" e "M" em dados numérico
@@ -66,37 +71,33 @@ classes <-replace(classes, classes == "M", 2) # Atribuindo maligno com 2
 classes <- as.numeric(classes)
 
 # plot para visualizar distribuição das classes considerando primieira features do dataset
-plot(cancers[, 2:10], col = classes)
+plot(cancers[, 2:5], col = classes)
 
-cl <- kmeans(data, 2)
+cl1 <- kmeans(data_scale, 2)
+cl2 <- kmeans(data, 2)
 
 cl$cluster
 classes
 
-compar <- classes == cl$cluster
-taxaAcerto <- (table(compar)[names(table(compar)) == TRUE] * 100) / length(compar) # Contando a taxa de acerto: 14,5
-taxaAcerto
+compar1 <- classes == cl1$cluster
+compar2 <- classes == cl2$cluster
 
-fviz_cluster(cl, data = data, geom = "point")
+taxaAcerto1 <- (table(compar1)[names(table(compar1)) == TRUE] * 100) / length(compar1) # Contando a taxa de acerto: 14,5
+taxaAcerto1
+
+taxaAcerto2 <- (table(compar2)[names(table(compar2)) == TRUE] * 100) / length(compar2) # Contando a taxa de acerto: 14,5
+taxaAcerto2
+
+fviz_cluster(cl1, data = data_scale, geom = "point", main = "Gráfico de cluster normalizado")
+fviz_cluster(cl2, data = data, geom = "point", main = "Gráfico de cluster não normalizado")
 
 # ------------------------ Algoritmo do cotovelo -------------------------------
 
-# Resumo: Achar graficamente um numero otimo de K's (agrupamentos)
-k.max <- 2
-wss <- sapply(2:k.max, function(k){kmeans(data, k, nstart=2 )$tot.withinss})
-print(wss)
-
-# plot(2:k.max, wss, type="b", pch = 19,  xlab="Number of clusters K", ylab="Total within-clusters sum of squares")
-fviz_nbclust(data, kmeans, method = "wss") 
-
-## Codigo da dani
-set.seed(123)
-
 # função para calcular a soma total do quadrado dentro do cluster
 # total within-cluster (tot.withinss)
-wss <- function(k) {kmeans(data, k)$tot.withinss}
+wss <- function(k) {kmeans(data_scale, k)$tot.withinss}
 
-# Calcule e plote wss para k = 1 a k = 15
+# Calcule e plote wss para k = 1 a k = 10
 k.values <- 1:10
 
 # extrair wss para 2-15 clusters
@@ -108,7 +109,7 @@ plot(k.values, wss_values,
      ylab="Soma total dos quadrados dentro dos clusters")
 
 # Metodo cotovelo já implementado por fviz_nbclust
-n_clust <- fviz_nbclust(data, kmeans, method = "wss") +
+n_clust <- fviz_nbclust(data_scale, kmeans, method = "wss") +
   geom_vline(xintercept = 2, linetype = 2)+
   labs(subtitle = "Elbow method")
 
