@@ -120,12 +120,12 @@ var <- get_pca_var(pca)
 var
 
 # PCA Inividuos por classe de numeros
-fviz_pca_ind(pca, geom="point", pointsize= 1.5, habillage = classe$number, alpha.ind = 1)
+fviz_pca_ind(pca, geom="point", pointsize= 3, habillage = classe$number, alpha.ind = 1)
 
 # PCA variavel com maior contribuição
 fviz_pca_var(pca, geom="text", select.var = list(contrib = 1))
 
 # Direção da variavel com maior contribuição por distribuição de individuos 
-fviz_pca_biplot(pca, select.var = list(contrib = 1), label="none", pointsize= 1,habillage = classe$number, alpha.ind = 1,
+fviz_pca_biplot(pca, select.var = list(contrib = 1), label="none", pointsize= 0.2,habillage = classe$number, alpha.ind = 1,
                 col.var = "black", # Variables color
 )

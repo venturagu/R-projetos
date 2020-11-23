@@ -59,7 +59,7 @@ cancers <- cancers[order(cancers$diagnosis),] # ordena primeiro benigno depois m
 
 data <- cancers[, -1] # Retiro id
 data <- data[, -1] # Retiro classificação
-
+View(data)
 # dataset com muitas features, aplicar escala
 data_scale<-as.data.frame(scale(data))
 
@@ -117,3 +117,7 @@ n_clust
 
 n_clust_list <- n_clust$data
 n_clust_list
+
+
+# plot para visualizar distribuição das classes de forma geral
+plot(cancers[, 2:4])
